@@ -1,0 +1,265 @@
+--[[
+    TEYKO PRIVATE HUB - V9 INTERNATIONAL
+    "Professional English Version"
+    Dev by Teyko with love ❤️
+]]
+
+local Players = game:GetService("Players")
+local RS = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Light = game:GetService("Lighting")
+
+local player = Players.LocalPlayer
+local pgui = player:WaitForChild("PlayerGui")
+local mouse = player:GetMouse()
+
+-- Cleanup previous versions
+if pgui:FindFirstChild("TeykoHubV9") then pgui.TeykoHubV9:Destroy() end
+
+--------------------------------------------------------------------
+-- INTERFACE STRUCTURE
+--------------------------------------------------------------------
+local sg = Instance.new("ScreenGui")
+sg.Name = "TeykoHubV9"
+sg.Parent = pgui
+sg.ResetOnSpawn = false
+sg.IgnoreGuiInset = true
+
+local main = Instance.new("Frame")
+main.Name = "MainFrame"
+main.Parent = sg
+main.Size = UDim2.new(0, 320, 0, 480)
+main.Position = UDim2.new(0.5, -160, 0.5, -240)
+main.BackgroundColor3 = Color3.fromRGB(13, 13, 15)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.ZIndex = 1
+
+local corner = Instance.new("UICorner", main)
+corner.CornerRadius = UDim.new(0, 15)
+
+-- CHROMA RGB BORDER
+local stroke = Instance.new("UIStroke", main)
+stroke.Thickness = 3
+stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+task.spawn(function()
+	while task.wait() do
+		stroke.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+	end
+end)
+
+-- TITLE (English)
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 60)
+title.BackgroundTransparency = 1
+title.Text = "TEYKO PRIVATE HUB"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.ZIndex = 2
+
+-- CLOSE BUTTON
+local close = Instance.new("TextButton", main)
+close.Size = UDim2.new(0, 35, 0, 35)
+close.Position = UDim2.new(1, -45, 0, 12)
+close.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
+close.Text = "x"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Font = Enum.Font.GothamBold
+close.ZIndex = 10
+Instance.new("UICorner", close).CornerRadius = UDim.new(1, 0)
+
+close.MouseButton1Click:Connect(function()
+	sg:Destroy()
+end)
+
+-- SCROLLING CONTAINER
+local scroll = Instance.new("ScrollingFrame", main)
+scroll.Size = UDim2.new(1, -30, 1, -130)
+scroll.Position = UDim2.new(0, 15, 0, 70)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.CanvasSize = UDim2.new(0, 0, 0, 750)
+scroll.ScrollBarThickness = 2
+scroll.ZIndex = 3
+
+local layout = Instance.new("UIListLayout", scroll)
+layout.Padding = UDim.new(0, 10)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- CREDITS
+local credits = Instance.new("TextLabel", main)
+credits.Size = UDim2.new(1, 0, 0, 40)
+credits.Position = UDim2.new(0, 0, 1, -45)
+credits.BackgroundTransparency = 1
+credits.Text = "dev by Teyko with love ❤️"
+credits.TextColor3 = Color3.fromRGB(180, 180, 180)
+credits.Font = Enum.Font.Gotham
+credits.TextSize = 14
+credits.ZIndex = 2
+
+--------------------------------------------------------------------
+-- BUTTON SYSTEM (English)
+--------------------------------------------------------------------
+local function AddButton(name, callback)
+	local b = Instance.new("TextButton", scroll)
+	b.Size = UDim2.new(0, 260, 0, 42)
+	b.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+	b.Text = name
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Font = Enum.Font.GothamSemibold
+	b.TextSize = 15
+	b.ZIndex = 4
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+	
+	local active = false
+	b.MouseButton1Click:Connect(function()
+		active = not active
+		b.BackgroundColor3 = active and Color3.fromRGB(70, 0, 255) or Color3.fromRGB(30, 30, 35)
+		b.Text = active and name .. " [ON]" or name
+		callback(active)
+	end)
+end
+
+--------------------------------------------------------------------
+-- FEATURES (English Version)
+--------------------------------------------------------------------
+
+-- 1. SPEED
+AddButton("Super Speed", function(on)
+	player.Character.Humanoid.WalkSpeed = on and 120 or 16
+end)
+
+-- 2. INF JUMP
+local jumpConn
+AddButton("Infinite Jump", function(on)
+	if on then
+		jumpConn = UIS.JumpRequest:Connect(function()
+			player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+		end)
+	else
+		if jumpConn then jumpConn:Disconnect() end
+	end
+end)
+
+-- 3. FLY
+local flying = false
+AddButton("Fly Mode", function(on)
+	flying = on
+	local root = player.Character:WaitForChild("HumanoidRootPart")
+	if on then
+		local bv = Instance.new("BodyVelocity", root)
+		bv.Name = "TeykoFly"
+		bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+		task.spawn(function()
+			while flying do
+				RS.Heartbeat:Wait()
+				bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 100
+			end
+			bv:Destroy()
+		end)
+	end
+end)
+
+-- 4. NOCLIP
+local noclip = false
+AddButton("Noclip", function(on)
+	noclip = on
+	RS.Stepped:Connect(function()
+		if noclip and player.Character then
+			for _, v in pairs(player.Character:GetDescendants()) do
+				if v:IsA("BasePart") then v.CanCollide = false end
+			end
+		end
+	end)
+end)
+
+-- 5. PLAYER ESP
+AddButton("Player ESP", function(on)
+	for _, p in pairs(Players:GetPlayers()) do
+		if p ~= player and p.Character and p.Character:FindFirstChild("Head") then
+			if on then
+				local b = Instance.new("BillboardGui", p.Character.Head)
+				b.Name = "TeykoESP"
+				b.Size = UDim2.new(0, 100, 0, 50)
+				b.AlwaysOnTop = true
+				local t = Instance.new("TextLabel", b)
+				t.Text = p.Name .. " [" .. math.floor(p:DistanceFromCharacter(player.Character.Head.Position)) .. "m]"
+				t.Size = UDim2.new(1, 0, 1, 0)
+				t.TextColor3 = Color3.new(1, 1, 1)
+				t.BackgroundTransparency = 1
+				t.Font = Enum.Font.GothamBold
+			else
+				if p.Character.Head:FindFirstChild("TeykoESP") then
+					p.Character.Head.TeykoESP:Destroy()
+				end
+			end
+		end
+	end
+end)
+
+-- 6. PLAYER INFO TOOL (NEW)
+local infoToolActive = false
+AddButton("Click for Player Info", function(on)
+	infoToolActive = on
+end)
+
+mouse.Button1Down:Connect(function()
+	if infoToolActive and mouse.Target then
+		local model = mouse.Target:FindFirstAncestorOfClass("Model")
+		if model and Players:GetPlayerFromCharacter(model) then
+			local target = Players:GetPlayerFromCharacter(model)
+			-- Notification / Print Info
+			print("--- PLAYER INFO ---")
+			print("Name: " .. target.Name)
+			print("Display Name: " .. target.DisplayName)
+			print("User ID: " .. target.UserId)
+			print("Account Age: " .. target.AccountAge .. " days")
+			print("Membership: " .. tostring(target.MembershipType))
+			-- Small in-game notification hint
+			local hint = Instance.new("Hint", workspace)
+			hint.Text = "Target: " .. target.Name .. " | ID: " .. target.UserId
+			task.wait(3)
+			hint:Destroy()
+		end
+	end
+end)
+
+-- 7. CTRL + CLICK TP
+local tpOn = false
+AddButton("Ctrl + Click TP", function(on) tpOn = on end)
+mouse.Button1Down:Connect(function()
+	if tpOn and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+		player.Character:MoveTo(mouse.Hit.p)
+	end
+end)
+
+-- 8. GALAXY SKY
+AddButton("Galaxy Sky", function(on)
+	if on then
+		local sky = Instance.new("Sky", Light)
+		sky.Name = "TeykoSky"
+		sky.SkyboxBk = "rbxassetid://159454299"
+		sky.SkyboxDn = "rbxassetid://159454296"
+		sky.SkyboxFt = "rbxassetid://159454293"
+		sky.SkyboxLf = "rbxassetid://159454286"
+		sky.SkyboxRt = "rbxassetid://159454288"
+		sky.SkyboxUp = "rbxassetid://159454290"
+	else
+		if Light:FindFirstChild("TeykoSky") then Light.TeykoSky:Destroy() end
+	end
+end)
+
+-- 9. FULL BRIGHT
+AddButton("Full Bright", function(on)
+	Light.Brightness = on and 3 or 1
+	Light.GlobalShadows = not on
+end)
+
+-- 10. MOON GRAVITY
+AddButton("Moon Gravity", function(on)
+	workspace.Gravity = on and 35 or 196.2
+end)
+
+print("TEYKO HUB V9 LOADED - EVERYTHING IN ENGLISH!")
